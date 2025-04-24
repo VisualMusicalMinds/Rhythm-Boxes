@@ -9,10 +9,9 @@ let isPlaying = false;
 let currentStep = 0;
 let interval;
 
-// ---- ROBUST AUDIO INIT ----
+// ---- AUDIO CONTEXT, LAZY INIT ----
 let ctx = null;
 let masterGain = null;
-
 async function ensureAudio() {
   if (!ctx) {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -25,13 +24,13 @@ async function ensureAudio() {
   }
 }
 
-// ---- VOLUME CONTROL ----
+// ---- HANDLER FOR VOLUME ----
 document.getElementById("volumeControl").addEventListener("input", async e => {
   await ensureAudio();
   masterGain.gain.value = parseFloat(e.target.value);
 });
 
-// ---- TEMPO CONTROL ----
+// ---- HANDLER FOR TEMPO ----
 document.getElementById("tempoInput").addEventListener("change", e => {
   bpm = parseInt(e.target.value);
   if (bpm < 30) bpm = 30;
@@ -152,27 +151,21 @@ function startPlaybackLoop() {
   }, (60000 / bpm) / 4);
 }
 
-// ---- USER PLAY/STOP ----
-document.querySelectorAll('button').forEach(btn => {
-  if (btn.textContent.includes("Play")) {
-    btn.addEventListener("click", async () => {
-      await ensureAudio();
-      if (isPlaying) {
-        clearInterval(interval);
-        isPlaying = false;
-        currentStep = 0;
-        cells.forEach(cell => cell.classList.remove("highlight"));
-      } else {
-        isPlaying = true;
-        startPlaybackLoop();
-      }
-    });
+// ---- PLAY/STOP BUTTON ----
+async function togglePlay() {
+  await ensureAudio();
+  if (isPlaying) {
+    clearInterval(interval);
+    isPlaying = false;
+    currentStep = 0;
+    cells.forEach(cell => cell.classList.remove("highlight"));
+  } else {
+    isPlaying = true;
+    startPlaybackLoop();
   }
-  if (btn.textContent.includes("Clear")) {
-    btn.addEventListener("click", clearAll);
-  }
-});
+}
 
+// ---- CLEAR BUTTON ----
 function clearAll() {
   boxes.length = 0;
   cells.forEach(cell => {
@@ -184,6 +177,11 @@ function clearAll() {
   });
 }
 
+// ---- WIRE UP BUTTONS ----
+document.getElementById("playButton").addEventListener("click", togglePlay);
+document.getElementById("clearButton").addEventListener("click", clearAll);
+
+// ---- GRID IMAGE LOGIC (unchanged) ----
 function updateImageRow() {
   for (let i = 0; i < totalSteps; i++) {
     const wrapper = cells[i].parentElement;
@@ -245,7 +243,7 @@ function updateImageRow() {
   }
 }
 
-// Create cells and grid
+// ---- BUILD THE GRID ----
 for (let i = 0; i < totalSteps; i++) {
   const wrapper = document.createElement("div");
   wrapper.classList.add("cell-wrapper");
@@ -289,7 +287,7 @@ for (let i = 0; i < totalSteps; i++) {
   cells.push(div);
 }
 
-// Drag-and-drop support (mouse)
+// ---- DRAG-AND-DROP SUPPORT (unchanged) ----
 document.querySelectorAll(".draggable").forEach(box => {
   box.addEventListener("dragstart", e => {
     currentLength = parseInt(box.dataset.length);
@@ -363,7 +361,7 @@ grid.addEventListener("drop", e => {
   updateImageRow();
 });
 
-// Touch/Smartboard Drag and Drop Support
+// ---- TOUCH/SMARTBOARD DRAG AND DROP SUPPORT (unchanged) ----
 let touchDragging = false;
 let touchDragElement = null;
 let dragPreview = null;
@@ -477,7 +475,7 @@ document.addEventListener('touchend', function(e) {
   touchDragElement = null;
 });
 
-// Cleanup highlight when clicking outside grid
+// ---- CLICK OUTSIDE GRID: REMOVE HIGHLIGHTS ----
 document.addEventListener('click', (event) => {
   let target = event.target;
   while (target) {
