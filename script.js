@@ -474,7 +474,58 @@ document.addEventListener('touchend', function(e) {
   touchDragging = false;
   touchDragElement = null;
 });
+// ... your setup, audio functions, grid-building, etc ... 
 
+// ---- DRAG-AND-DROP SUPPORT ----
+// (dragstart, dragover, drop events on .draggable and grid)
+
+// ---- TOUCH/SMARTBOARD DRAG AND DROP SUPPORT ----
+// (touchstart, touchmove, touchend events)
+
+// ---- TAP/CLICK-TO-SELECT, CLICK-TO-PLACE FALLBACK ----
+let selectedLength = null;
+let selectedColor = null;
+
+document.querySelectorAll(".draggable").forEach(box => {
+  box.addEventListener("click", function() {
+    selectedLength = parseInt(box.dataset.length);
+    selectedColor = box.dataset.color;
+    document.querySelectorAll(".draggable").forEach(b => b.classList.remove("selected"));
+    box.classList.add("selected");
+  });
+});
+
+cells.forEach((cell, idx) => {
+  cell.addEventListener("click", function() {
+    // Don't overwrite if clicking to remove a box:
+    if (cell.dataset.permanent && selectedLength === null) return;
+    if (
+      selectedLength && selectedColor &&
+      idx + selectedLength <= totalSteps &&
+      cells.slice(idx, idx + selectedLength).every(c => !c.dataset.permanent)
+    ) {
+      for (let i = 0; i < selectedLength; i++) {
+        const c = cells[idx + i];
+        c.dataset.permanent = "true";
+        c.dataset.color = selectedColor;
+        if (selectedColor === "green") {
+          c.classList.add(i === 0 ? "green-primary" : "green-secondary");
+        } else if (selectedColor === "orange") {
+          c.classList.add(i === 0 ? "orange-primary" : "orange-secondary");
+        } else if (selectedColor === "purple") {
+          c.classList.add("purple");
+        }
+      }
+      boxes.push({ start: idx, length: selectedLength, color: selectedColor });
+      updateImageRow();
+      document.querySelectorAll(".draggable").forEach(b => b.classList.remove("selected"));
+      selectedLength = null;
+      selectedColor = null;
+    }
+  });
+});
+
+// ... any remaining script.js code ...
 // ---- CLICK OUTSIDE GRID: REMOVE HIGHLIGHTS ----
 document.addEventListener('click', (event) => {
   let target = event.target;
