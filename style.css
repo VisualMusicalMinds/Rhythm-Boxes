@@ -142,6 +142,10 @@ body {
   gap: 1vw;
   width: 90%;
 }
+.draggable.selected {
+  outline: 3px solid #0af;
+  box-shadow: 0 0 8px #0af;
+}
 .library img {
   width: 7vw;
   min-width: 40px;
