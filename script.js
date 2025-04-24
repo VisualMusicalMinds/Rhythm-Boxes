@@ -9,26 +9,25 @@ let isPlaying = false;
 let currentStep = 0;
 let interval;
 
-// ---- LAZY INITIALIZE AUDIO ----
+// ---- ROBUST AUDIO INIT ----
 let ctx = null;
 let masterGain = null;
-function initAudio() {
+
+async function ensureAudio() {
   if (!ctx) {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = ctx.createGain();
     masterGain.gain.value = 1;
     masterGain.connect(ctx.destination);
   }
+  if (ctx.state !== "running") {
+    await ctx.resume();
+  }
 }
 
-// ---- EVENT LISTENERS: INIT AUDIO ON ANY USER INTERACTION ----
-["mousedown", "touchstart", "keydown"].forEach(evt =>
-  document.body.addEventListener(evt, initAudio, { once: true, capture: true })
-);
-
 // ---- VOLUME CONTROL ----
-document.getElementById("volumeControl").addEventListener("input", e => {
-  if (!masterGain) initAudio();
+document.getElementById("volumeControl").addEventListener("input", async e => {
+  await ensureAudio();
   masterGain.gain.value = parseFloat(e.target.value);
 });
 
@@ -40,13 +39,13 @@ document.getElementById("tempoInput").addEventListener("change", e => {
   e.target.value = bpm;
   if (isPlaying) {
     clearInterval(interval);
-    interval = setInterval(playStep, (60000 / bpm) / 4);
+    startPlaybackLoop();
   }
 });
 
 // ---- SOUND FUNCTIONS ----
-function playTick() {
-  if (!ctx) initAudio();
+async function playTick() {
+  await ensureAudio();
   const bufferSize = 4096;
   const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
   const output = noiseBuffer.getChannelData(0);
@@ -66,8 +65,8 @@ function playTick() {
   noise.stop(ctx.currentTime + 0.05);
 }
 
-function playTone() {
-  if (!ctx) initAudio();
+async function playTone() {
+  await ensureAudio();
   const duration = 0.13;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -103,7 +102,7 @@ function highlightImage(cell) {
   }
 }
 
-function playStep() {
+async function playStep() {
   cells.forEach(cell => cell.classList.remove("highlight"));
   const currentGroupStart = Math.floor(currentStep / 4) * 4;
   const currentPairStart = currentStep % 2 === 0 ? currentStep : currentStep - 1;
@@ -112,7 +111,7 @@ function playStep() {
   const allGroupEmpty = group.every(c => !c.dataset.permanent);
   const bothPairEmpty = pair.every(c => !c.dataset.permanent);
 
-  if ([0, 4, 8, 12].includes(currentStep)) playTick();
+  if ([0, 4, 8, 12].includes(currentStep)) await playTick();
 
   const box = boxes.find(b => b.start === currentStep);
   if (box) {
@@ -121,7 +120,7 @@ function playStep() {
       cell.classList.add("highlight");
       highlightImage(cell);
     }
-    playTone();
+    await playTone();
   } else if (!cells[currentStep].dataset.permanent) {
     if (allGroupEmpty) {
       group.forEach(c => {
@@ -146,18 +145,33 @@ function playStep() {
   currentStep = (currentStep + 1) % totalSteps;
 }
 
-function togglePlay() {
-  if (!ctx) initAudio();
-  if (isPlaying) {
-    clearInterval(interval);
-    isPlaying = false;
-    currentStep = 0;
-    cells.forEach(cell => cell.classList.remove("highlight"));
-  } else {
-    interval = setInterval(playStep, (60000 / bpm) / 4);
-    isPlaying = true;
-  }
+// ---- PLAYBACK LOOP ----
+function startPlaybackLoop() {
+  interval = setInterval(() => {
+    playStep().catch(console.error);
+  }, (60000 / bpm) / 4);
 }
+
+// ---- USER PLAY/STOP ----
+document.querySelectorAll('button').forEach(btn => {
+  if (btn.textContent.includes("Play")) {
+    btn.addEventListener("click", async () => {
+      await ensureAudio();
+      if (isPlaying) {
+        clearInterval(interval);
+        isPlaying = false;
+        currentStep = 0;
+        cells.forEach(cell => cell.classList.remove("highlight"));
+      } else {
+        isPlaying = true;
+        startPlaybackLoop();
+      }
+    });
+  }
+  if (btn.textContent.includes("Clear")) {
+    btn.addEventListener("click", clearAll);
+  }
+});
 
 function clearAll() {
   boxes.length = 0;
