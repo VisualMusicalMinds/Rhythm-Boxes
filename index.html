@@ -1,31 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Rhythm Boxes</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="rhythm-app-container">
-    <div class="responsive-content">
-      <div class="grid" id="grid"></div>
-      <div class="library">
-        <img class="draggable" draggable="true" data-length="4" data-color="green" src="https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0002.png" />
-        <img class="draggable" draggable="true" data-length="2" data-color="orange" src="https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0004.png" />
-        <img class="draggable" draggable="true" data-length="1" data-color="purple" src="https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0006.png" />
-      </div>
-      <div class="controls-row">
-        <label for="tempoInput">BPM</label>
-        <input id="tempoInput" type="number" value="60" />
-        <button onclick="togglePlay()">▶️ Play / Stop</button>
-        <button onclick="clearAll()">🧹 Clear All</button>
-      </div>
-      <div class="volume-row">
-        <label for="volumeControl">Volume</label>
-        <input id="volumeControl" type="range" min="0" max="1" step="0.01" value="1" />
-      </div>
+<div class="rhythm-app-container">
+  <div class="responsive-content">
+    <div class="grid" id="grid"></div>
+    <div class="library">
+      <img class="draggable" draggable="true" data-length="4" data-color="green" src="https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0002.png" />
+      <img class="draggable" draggable="true" data-length="2" data-color="orange" src="https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0004.png" />
+      <img class="draggable" draggable="true" data-length="1" data-color="purple" src="https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0006.png" />
+    </div>
+    <div class="controls-row">
+      <label for="tempoInput">BPM</label>
+      <input id="tempoInput" type="number" value="60" />
+      <button onclick="togglePlay()">▶️ Play / Stop</button>
+      <button onclick="clearAll()">🧹 Clear All</button>
+    </div>
+    <div class="volume-row">
+      <label for="volumeControl">Volume</label>
+      <input id="volumeControl" type="range" min="0" max="1" step="0.01" value="1" />
     </div>
   </div>
-  <script src="script.js"></script>
-</body>
-</html>
+</div>
