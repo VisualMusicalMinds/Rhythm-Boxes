@@ -1,4 +1,3 @@
-// JS: Place this in the CodePen JS panel (no <script> tags)
 const grid = document.getElementById("grid");
 const totalSteps = 16;
 const cells = [];
@@ -10,15 +9,30 @@ let isPlaying = false;
 let currentStep = 0;
 let interval;
 
-const ctx = new (window.AudioContext || window.webkitAudioContext)();
-const masterGain = ctx.createGain();
-masterGain.gain.value = 1;
-masterGain.connect(ctx.destination);
+// ---- LAZY INITIALIZE AUDIO ----
+let ctx = null;
+let masterGain = null;
+function initAudio() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = ctx.createGain();
+    masterGain.gain.value = 1;
+    masterGain.connect(ctx.destination);
+  }
+}
 
+// ---- EVENT LISTENERS: INIT AUDIO ON ANY USER INTERACTION ----
+["mousedown", "touchstart", "keydown"].forEach(evt =>
+  document.body.addEventListener(evt, initAudio, { once: true, capture: true })
+);
+
+// ---- VOLUME CONTROL ----
 document.getElementById("volumeControl").addEventListener("input", e => {
+  if (!masterGain) initAudio();
   masterGain.gain.value = parseFloat(e.target.value);
 });
 
+// ---- TEMPO CONTROL ----
 document.getElementById("tempoInput").addEventListener("change", e => {
   bpm = parseInt(e.target.value);
   if (bpm < 30) bpm = 30;
@@ -30,7 +44,9 @@ document.getElementById("tempoInput").addEventListener("change", e => {
   }
 });
 
+// ---- SOUND FUNCTIONS ----
 function playTick() {
+  if (!ctx) initAudio();
   const bufferSize = 4096;
   const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
   const output = noiseBuffer.getChannelData(0);
@@ -51,6 +67,7 @@ function playTick() {
 }
 
 function playTone() {
+  if (!ctx) initAudio();
   const duration = 0.13;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -130,6 +147,7 @@ function playStep() {
 }
 
 function togglePlay() {
+  if (!ctx) initAudio();
   if (isPlaying) {
     clearInterval(interval);
     isPlaying = false;
