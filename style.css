@@ -204,3 +204,7 @@ body {
   .grid { height: 28vw; }
   .library img { width: 16vw; }
 }
+.draggable.selected {
+  outline: 3px solid #0af;
+  box-shadow: 0 0 8px #0af;
+}
