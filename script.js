@@ -307,6 +307,20 @@ cells.forEach((cell, idx) => {
   cell.addEventListener("click", function() {
     // Don't overwrite if clicking to remove a box:
     if (cell.dataset.permanent && selectedLength === null) return;
+       
+    // === SHAKING IF IT WON'T FIT ===
+    if (
+      selectedLength && selectedColor &&
+      (
+        idx + selectedLength > totalSteps ||
+        cells.slice(idx, idx + selectedLength).some(c => c.dataset.permanent)
+      )
+    ) {
+      grid.classList.add("shake");
+      setTimeout(() => grid.classList.remove("shake"), 300);
+      return; // Don't attempt to place
+    }
+
     if (
       selectedLength && selectedColor &&
       idx + selectedLength <= totalSteps &&
