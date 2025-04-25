@@ -9,6 +9,10 @@ let isPlaying = false;
 let currentStep = 0;
 let interval;
 
+// ---- SOUND MODE/PITCH ----
+let soundMode = "drum";
+let selectedPitch = "A2";
+
 // ---- AUDIO CONTEXT, LAZY INIT ----
 let ctx = null;
 let masterGain = null;
@@ -42,6 +46,30 @@ document.getElementById("tempoInput").addEventListener("change", e => {
   }
 });
 
+// ---- SOUND MODE & PITCH SELECTORS ----
+document.querySelectorAll('input[name="soundMode"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    soundMode = this.value;
+    document.getElementById('pitchSelector').style.display = (soundMode === "pitch") ? "" : "none";
+  });
+});
+document.getElementById("pitchSelector").addEventListener('change', function() {
+  selectedPitch = this.value;
+});
+
+// ---- NOTE TO FREQUENCY ----
+function noteToFrequency(note) {
+  // Map note names to MIDI numbers
+  const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  let match = note.match(/^([A-G]#?)(\d)$/);
+  if (!match) return 440;
+  let [_, n, octave] = match;
+  let noteIndex = notes.indexOf(n);
+  if (noteIndex === -1) return 440;
+  let midi = noteIndex + 12 * (parseInt(octave) + 1);
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
 // ---- SOUND FUNCTIONS ----
 async function playTick() {
   await ensureAudio();
@@ -64,6 +92,24 @@ async function playTick() {
   noise.stop(ctx.currentTime + 0.05);
 }
 
+// ---- TRIANGLE WAVE PITCH ----
+async function playPitch(note) {
+  await ensureAudio();
+  const duration = 0.13;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "triangle";
+  osc.frequency.setValueAtTime(noteToFrequency(note), ctx.currentTime);
+  gain.gain.setValueAtTime(1, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start();
+  osc.stop(ctx.currentTime + duration);
+}
+
+// ---- SINE TONE FOR DRUMBOXES (no longer used for pitch, keep for legacy) ----
 async function playTone() {
   await ensureAudio();
   const duration = 0.13;
@@ -74,7 +120,6 @@ async function playTone() {
   osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + duration * 0.8);
   gain.gain.setValueAtTime(1, ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
-
   osc.connect(gain);
   gain.connect(masterGain);
   osc.start();
@@ -93,6 +138,7 @@ async function playTone() {
   click.start();
 }
 
+// ---- HIGHLIGHT IMAGE ----
 function highlightImage(cell) {
   const img = cell.parentElement.querySelector('.cell-image');
   if (img) {
@@ -101,6 +147,7 @@ function highlightImage(cell) {
   }
 }
 
+// ---- PLAY CURRENT STEP ----
 async function playStep() {
   cells.forEach(cell => cell.classList.remove("highlight"));
   const currentGroupStart = Math.floor(currentStep / 4) * 4;
@@ -119,7 +166,12 @@ async function playStep() {
       cell.classList.add("highlight");
       highlightImage(cell);
     }
-    await playTone();
+    // SOUND LOGIC: Drum or Pitch
+    if (soundMode === "drum") {
+      await playTone();
+    } else {
+      await playPitch(selectedPitch);
+    }
   } else if (!cells[currentStep].dataset.permanent) {
     if (allGroupEmpty) {
       group.forEach(c => {
