@@ -20,6 +20,30 @@
         <button id="playButton">▶️ Play / Stop</button>
         <button id="clearButton">🧹 Clear All</button>
       </div>
+      <div class="sound-mode-row">
+        <label>
+          <input type="radio" name="soundMode" value="drum" checked>
+          Drum
+        </label>
+        <label>
+          <input type="radio" name="soundMode" value="pitch">
+          Pitch
+        </label>
+        <select id="pitchSelector" style="display:none;">
+          <option value="A2">A2</option>
+          <option value="A#2">A#2</option>
+          <option value="B2">B2</option>
+          <option value="C3">C3</option>
+          <option value="C#3">C#3</option>
+          <option value="D3">D3</option>
+          <option value="D#3">D#3</option>
+          <option value="E3">E3</option>
+          <option value="F3">F3</option>
+          <option value="F#3">F#3</option>
+          <option value="G3">G3</option>
+          <option value="G#3">G#3</option>
+        </select>
+      </div>
       <div class="volume-row">
         <label for="volumeControl">Volume</label>
         <input id="volumeControl" type="range" min="0" max="1" step="0.01" value="1" />
