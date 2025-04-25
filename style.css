@@ -208,3 +208,14 @@ body {
 .shake {
   animation: shake 0.3s !important;
 }
+.sound-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  margin-top: 1vw;
+  font-size: 1em;
+}
+#pitchSelector {
+  font-size: 1em;
+  margin-left: 1vw;
+}
