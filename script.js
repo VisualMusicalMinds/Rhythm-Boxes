@@ -181,7 +181,7 @@ function clearAll() {
 document.getElementById("playButton").addEventListener("click", togglePlay);
 document.getElementById("clearButton").addEventListener("click", clearAll);
 
-// ---- GRID IMAGE LOGIC (unchanged) ----
+// ---- GRID IMAGE LOGIC ----
 function updateImageRow() {
   for (let i = 0; i < totalSteps; i++) {
     const wrapper = cells[i].parentElement;
@@ -266,7 +266,8 @@ for (let i = 0; i < totalSteps; i++) {
   grid.appendChild(wrapper);
 
   div.addEventListener("click", () => {
-    if (!div.dataset.permanent) return;
+    // Remove a placed box if tapped/clicked with nothing selected
+    if (!div.dataset.permanent || selectedLength !== null) return;
 
     const startIndex = parseInt(div.dataset.index);
     const boxIndex = boxes.findIndex(box => startIndex >= box.start && startIndex < box.start + box.length);
@@ -287,205 +288,11 @@ for (let i = 0; i < totalSteps; i++) {
   cells.push(div);
 }
 
-// ---- DRAG-AND-DROP SUPPORT (unchanged) ----
-document.querySelectorAll(".draggable").forEach(box => {
-  box.addEventListener("dragstart", e => {
-    currentLength = parseInt(box.dataset.length);
-    currentColor = box.dataset.color;
-    e.dataTransfer.setData("text/plain", box.dataset.length);
-    e.dataTransfer.effectAllowed = "copy";
-  });
-});
-
-grid.addEventListener("dragover", e => {
-  e.preventDefault();
-  const gridRect = grid.getBoundingClientRect();
-  const offsetX = e.clientX - gridRect.left;
-  const firstCell = document.querySelector('.cell');
-  const cellWidth = firstCell ? firstCell.getBoundingClientRect().width : 32.5;
-  const index = Math.floor(offsetX / cellWidth);
-
-  cells.forEach((cell, i) => {
-    if (!cell.dataset.permanent) {
-      cell.classList.remove("green-primary", "green-secondary", "orange-primary", "orange-secondary", "purple");
-    }
-  });
-
-  if (index + currentLength <= totalSteps && cells.slice(index, index + currentLength).every(c => !c.dataset.permanent)) {
-    for (let i = 0; i < currentLength; i++) {
-      const cell = cells[index + i];
-      if (currentColor === "green") {
-        cell.classList.add(i === 0 ? "green-primary" : "green-secondary");
-      } else if (currentColor === "orange") {
-        cell.classList.add(i === 0 ? "orange-primary" : "orange-secondary");
-      } else if (currentColor === "purple") {
-        cell.classList.add("purple");
-      }
-    }
-  }
-});
-
-grid.addEventListener("drop", e => {
-  e.preventDefault();
-  const gridRect = grid.getBoundingClientRect();
-  const offsetX = e.clientX - gridRect.left;
-  const firstCell = document.querySelector('.cell');
-  const cellWidth = firstCell ? firstCell.getBoundingClientRect().width : 32.5;
-  const index = Math.floor(offsetX / cellWidth);
-
-  cells.forEach((cell, i) => {
-    if (!cell.dataset.permanent) {
-      cell.classList.remove("green-primary", "green-secondary", "orange-primary", "orange-secondary", "purple");
-    }
-  });
-
-  if (index + currentLength > totalSteps || cells.slice(index, index + currentLength).some(c => c.dataset.permanent)) {
-    grid.classList.add("shake");
-    setTimeout(() => grid.classList.remove("shake"), 300);
-    return;
-  }
-
-  for (let i = 0; i < currentLength; i++) {
-    const cell = cells[index + i];
-    if (currentColor === "green") {
-      cell.classList.add(i === 0 ? "green-primary" : "green-secondary");
-    } else if (currentColor === "orange") {
-      cell.classList.add(i === 0 ? "orange-primary" : "orange-secondary");
-    } else if (currentColor === "purple") {
-      cell.classList.add("purple");
-    }
-    cell.dataset.permanent = "true";
-    cell.dataset.color = currentColor;
-  }
-  boxes.push({ start: index, length: currentLength, color: currentColor });
-  updateImageRow();
-});
-
-// ---- TOUCH/SMARTBOARD DRAG AND DROP SUPPORT (unchanged) ----
-let touchDragging = false;
-let touchDragElement = null;
-let dragPreview = null;
-
-document.querySelectorAll(".draggable").forEach(box => {
-  box.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    touchDragging = true;
-    touchDragElement = box;
-    currentLength = parseInt(box.dataset.length);
-    currentColor = box.dataset.color;
-    // Create drag preview
-    dragPreview = box.cloneNode(true);
-    dragPreview.style.position = 'fixed';
-    dragPreview.style.pointerEvents = 'none';
-    dragPreview.style.opacity = 0.7;
-    dragPreview.style.zIndex = 1000;
-    document.body.appendChild(dragPreview);
-    const touch = e.touches[0];
-    dragPreview.style.left = `${touch.clientX - box.offsetWidth/2}px`;
-    dragPreview.style.top = `${touch.clientY - box.offsetHeight/2}px`;
-  });
-});
-
-document.addEventListener('touchmove', function(e) {
-  if (!touchDragging || !dragPreview) return;
-  const touch = e.touches[0];
-  dragPreview.style.left = `${touch.clientX - dragPreview.offsetWidth/2}px`;
-  dragPreview.style.top = `${touch.clientY - dragPreview.offsetHeight/2}px`;
-
-  // Show highlight on grid
-  const gridRect = grid.getBoundingClientRect();
-  if (
-    touch.clientX >= gridRect.left && touch.clientX <= gridRect.right &&
-    touch.clientY >= gridRect.top && touch.clientY <= gridRect.bottom
-  ) {
-    const offsetX = touch.clientX - gridRect.left;
-    const firstCell = document.querySelector('.cell');
-    const cellWidth = firstCell ? firstCell.getBoundingClientRect().width : 32.5;
-    const index = Math.floor(offsetX / cellWidth);
-
-    cells.forEach((cell, i) => {
-      if (!cell.dataset.permanent) {
-        cell.classList.remove("green-primary", "green-secondary", "orange-primary", "orange-secondary", "purple");
-      }
-    });
-
-    if (index + currentLength <= totalSteps && cells.slice(index, index + currentLength).every(c => !c.dataset.permanent)) {
-      for (let i = 0; i < currentLength; i++) {
-        const cell = cells[index + i];
-        if (currentColor === "green") {
-          cell.classList.add(i === 0 ? "green-primary" : "green-secondary");
-        } else if (currentColor === "orange") {
-          cell.classList.add(i === 0 ? "orange-primary" : "orange-secondary");
-        } else if (currentColor === "purple") {
-          cell.classList.add("purple");
-        }
-      }
-    }
-  }
-});
-
-document.addEventListener('touchend', function(e) {
-  if (!touchDragging) return;
-  // Remove preview
-  if (dragPreview) {
-    document.body.removeChild(dragPreview);
-    dragPreview = null;
-  }
-  // Try to drop if over grid
-  const touch = e.changedTouches[0];
-  const gridRect = grid.getBoundingClientRect();
-  if (
-    touch.clientX >= gridRect.left && touch.clientX <= gridRect.right &&
-    touch.clientY >= gridRect.top && touch.clientY <= gridRect.bottom
-  ) {
-    const offsetX = touch.clientX - gridRect.left;
-    const firstCell = document.querySelector('.cell');
-    const cellWidth = firstCell ? firstCell.getBoundingClientRect().width : 32.5;
-    const index = Math.floor(offsetX / cellWidth);
-
-    cells.forEach((cell, i) => {
-      if (!cell.dataset.permanent) {
-        cell.classList.remove("green-primary", "green-secondary", "orange-primary", "orange-secondary", "purple");
-      }
-    });
-
-    if (index + currentLength > totalSteps || cells.slice(index, index + currentLength).some(c => c.dataset.permanent)) {
-      grid.classList.add("shake");
-      setTimeout(() => grid.classList.remove("shake"), 300);
-      touchDragging = false;
-      touchDragElement = null;
-      return;
-    }
-    for (let i = 0; i < currentLength; i++) {
-      const cell = cells[index + i];
-      if (currentColor === "green") {
-        cell.classList.add(i === 0 ? "green-primary" : "green-secondary");
-      } else if (currentColor === "orange") {
-        cell.classList.add(i === 0 ? "orange-primary" : "orange-secondary");
-      } else if (currentColor === "purple") {
-        cell.classList.add("purple");
-      }
-      cell.dataset.permanent = "true";
-      cell.dataset.color = currentColor;
-    }
-    boxes.push({ start: index, length: currentLength, color: currentColor });
-    updateImageRow();
-  }
-  touchDragging = false;
-  touchDragElement = null;
-});
-// ... your setup, audio functions, grid-building, etc ... 
-
-// ---- DRAG-AND-DROP SUPPORT ----
-// (dragstart, dragover, drop events on .draggable and grid)
-
-// ---- TOUCH/SMARTBOARD DRAG AND DROP SUPPORT ----
-// (touchstart, touchmove, touchend events)
-
-// ---- TAP/CLICK-TO-SELECT, CLICK-TO-PLACE FALLBACK ----
+// ---- TAP/CLICK-TO-SELECT, CLICK-TO-PLACE (NO DRAG) ----
 let selectedLength = null;
 let selectedColor = null;
 
+// Select from library
 document.querySelectorAll(".draggable").forEach(box => {
   box.addEventListener("click", function() {
     selectedLength = parseInt(box.dataset.length);
@@ -495,6 +302,7 @@ document.querySelectorAll(".draggable").forEach(box => {
   });
 });
 
+// Place on grid
 cells.forEach((cell, idx) => {
   cell.addEventListener("click", function() {
     // Don't overwrite if clicking to remove a box:
@@ -525,7 +333,6 @@ cells.forEach((cell, idx) => {
   });
 });
 
-// ... any remaining script.js code ...
 // ---- CLICK OUTSIDE GRID: REMOVE HIGHLIGHTS ----
 document.addEventListener('click', (event) => {
   let target = event.target;
