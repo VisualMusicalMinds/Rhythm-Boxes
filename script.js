@@ -204,6 +204,23 @@ function startPlaybackLoop() {
 }
 
 // ---- PLAY/STOP BUTTON ----
+// Remove click event to prevent double triggers
+// document.getElementById("playButton").addEventListener("click", togglePlay);
+
+const playButton = document.getElementById("playButton");
+
+// Desktop: start instantly on press
+playButton.addEventListener("mousedown", (e) => {
+  e.preventDefault();
+  togglePlay();
+});
+
+// Mobile: start instantly on touch
+playButton.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  togglePlay();
+}, { passive: false });
+
 async function togglePlay() {
   await ensureAudio();
   if (isPlaying) {
@@ -228,9 +245,6 @@ function clearAll() {
     if (img) img.src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0008.png";
   });
 }
-
-// ---- WIRE UP BUTTONS ----
-document.getElementById("playButton").addEventListener("click", togglePlay);
 document.getElementById("clearButton").addEventListener("click", clearAll);
 
 // ---- GRID IMAGE LOGIC ----
