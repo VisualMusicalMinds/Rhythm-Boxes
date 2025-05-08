@@ -83,7 +83,7 @@ async function playTick() {
   filter.type = 'highpass';
   filter.frequency.setValueAtTime(800, ctx.currentTime);
   const gain = ctx.createGain();
-  gain.gain.setValueAtTime(0.2, ctx.currentTime);
+  gain.gain.setValueAtTime(0.13, ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
   noise.connect(filter);
   filter.connect(gain);
