@@ -4,7 +4,7 @@ const cells = [];
 const boxes = [];
 let currentColor = '';
 let currentLength = 0;
-let bpm = 60;
+let bpm = 90;
 let isPlaying = false;
 let currentStep = 0;
 let interval;
@@ -12,6 +12,9 @@ let interval;
 // ---- SOUND MODE/PITCH ----
 let soundMode = "drum";
 let selectedPitch = "A2";
+
+// ---- TICK MUTE STATE ----
+let tickMuted = false;
 
 // ---- AUDIO CONTEXT, LAZY INIT ----
 let ctx = null;
@@ -44,6 +47,11 @@ document.getElementById("tempoInput").addEventListener("change", e => {
     clearInterval(interval);
     startPlaybackLoop();
   }
+});
+
+// ---- HANDLER FOR TICK MUTE CHECKBOX ----
+document.getElementById("tickMute").addEventListener("change", function() {
+  tickMuted = !this.checked;
 });
 
 // ---- SOUND MODE & PITCH SELECTORS ----
@@ -83,7 +91,7 @@ async function playTick() {
   filter.type = 'highpass';
   filter.frequency.setValueAtTime(800, ctx.currentTime);
   const gain = ctx.createGain();
-  gain.gain.setValueAtTime(0.13, ctx.currentTime);
+  gain.gain.setValueAtTime(0.2, ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
   noise.connect(filter);
   filter.connect(gain);
@@ -157,7 +165,7 @@ async function playStep() {
   const allGroupEmpty = group.every(c => !c.dataset.permanent);
   const bothPairEmpty = pair.every(c => !c.dataset.permanent);
 
-  if ([0, 4, 8, 12].includes(currentStep)) await playTick();
+  if (!tickMuted && [0, 4, 8, 12].includes(currentStep)) await playTick();
 
   const box = boxes.find(b => b.start === currentStep);
   if (box) {
@@ -242,7 +250,7 @@ function clearAll() {
     delete cell.dataset.permanent;
     delete cell.dataset.color;
     const img = cell.parentElement.querySelector(".cell-image");
-    if (img) img.src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0008.png";
+    if (img) img.src = "https://eagleviewmusic.com/images/Cartoon%20Rhythm0008.png";
   });
 }
 document.getElementById("clearButton").addEventListener("click", clearAll);
@@ -252,7 +260,7 @@ function updateImageRow() {
   for (let i = 0; i < totalSteps; i++) {
     const wrapper = cells[i].parentElement;
     const img = wrapper.querySelector(".cell-image");
-    img.src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0008.png";
+    img.src = "https://eagleviewmusic.com/images/Cartoon%20Rhythm0008.png";
   }
 
   for (let i = 0; i < totalSteps; i++) {
@@ -262,13 +270,13 @@ function updateImageRow() {
 
     if (cell.dataset.permanent) {
       if (cell.dataset.color === "green") {
-        src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0002.png";
+        src = "https://eagleviewmusic.com/images/Cartoon%20Rhythm0002.png";
         skip = 3;
       } else if (cell.dataset.color === "orange") {
-        src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0004.png";
+        src = "https://eagleviewmusic.com/images/Cartoon%20Rhythm0004.png";
         skip = 1;
       } else if (cell.dataset.color === "purple") {
-        src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0006.png";
+        src = "https://eagleviewmusic.com/images/Cartoon%20Rhythm0006.png";
         skip = 0;
       }
     } else {
@@ -276,7 +284,7 @@ function updateImageRow() {
       const group = cells.slice(groupStart, groupStart + 4);
       const allEmpty = group.every(c => !c.dataset.permanent);
       if (allEmpty && i % 4 === 0) {
-        src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0003.png";
+        src = "https://eagleviewmusic.com/images/Cartoon%20Rhythm0003.png";
         skip = 3;
       } else {
         const pairStart = i % 2 === 0 ? i : i - 1;
@@ -284,10 +292,10 @@ function updateImageRow() {
         const bothEmpty = pair.every(c => !c.dataset.permanent);
         const oneEmpty = !cell.dataset.permanent && pair.some(c => c.dataset.permanent);
         if (bothEmpty && i % 2 === 0) {
-          src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0005.png";
+          src = "https://eagleviewmusic.com/images/Cartoon%20Rhythm0005.png";
           skip = 1;
         } else if (oneEmpty) {
-          src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0007.png";
+          src = "https://eagleviewmusic.com/images/Cartoon%20Rhythm0007.png";
           skip = 0;
         }
       }
@@ -301,7 +309,7 @@ function updateImageRow() {
         const nextCell = cells[i + j];
         if (nextCell) {
           const spacerImg = nextCell.parentElement.querySelector(".cell-image");
-          spacerImg.src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0008.png";
+          spacerImg.src = "https://eagleviewmusic.com/images/Cartoon%20Rhythm0008.png";
         }
       }
       i += skip;
@@ -315,7 +323,7 @@ for (let i = 0; i < totalSteps; i++) {
   wrapper.classList.add("cell-wrapper");
   const img = document.createElement("img");
   img.className = "cell-image";
-  img.src = "https://raw.githubusercontent.com/VisualMusicalMinds/Cartoon_Notation/refs/heads/main/Cartoon%20Rhythm0008.png";
+  img.src = "https://eagleviewmusic.com/images/Cartoon%20Rhythm0008.png";
   wrapper.appendChild(img);
   const div = document.createElement("div");
   div.classList.add("cell");
@@ -373,7 +381,32 @@ cells.forEach((cell, idx) => {
   cell.addEventListener("click", function() {
     // Don't overwrite if clicking to remove a box:
     if (cell.dataset.permanent && selectedLength === null) return;
-       
+
+    // ---- RHYTHM PLACEMENT RULES ----
+    // For quarter note (length 4, green): only boxes 1,5,9,13 (indices 0,4,8,12)
+    if (
+      selectedLength === 4 &&
+      selectedColor === "green" &&
+      ![0,4,8,12].includes(idx)
+    ) {
+      grid.classList.add("shake");
+      setTimeout(() => grid.classList.remove("shake"), 300);
+      return;
+    }
+
+    // For eighth note (length 2, orange): not on even boxes (musical: 2,4,6,...,16, i.e. indices 1,3,5,...,15)
+    if (
+      selectedLength === 2 &&
+      selectedColor === "orange" &&
+      [1,3,5,7,9,11,13,15].includes(idx)
+    ) {
+      grid.classList.add("shake");
+      setTimeout(() => grid.classList.remove("shake"), 300);
+      return;
+    }
+
+    // 16th note (length 1, purple): no extra rule
+
     // === SHAKING IF IT WON'T FIT ===
     if (
       selectedLength && selectedColor &&
