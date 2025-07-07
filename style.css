@@ -219,4 +219,11 @@ body {
   font-size: 1em;
   margin-left: 1vw;
 }
-
+/* Tick mute checkbox styling */
+.tick-mute-checkbox {
+  width: 1.5em;
+  height: 1.5em;
+  accent-color: #0078D4; /* Nice blue, optional */
+  vertical-align: middle;
+  cursor: pointer;
+}
